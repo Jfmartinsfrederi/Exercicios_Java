@@ -1,5 +1,6 @@
 package br.edu.ifsp.list01;
 
+import java.util.Locale;
 import java.util.Scanner;
 
 /*
@@ -28,6 +29,7 @@ public class Ex05 {
         //Leia o input
         //Crie uma variável do tipo deste arquivo. Exemplo: Ex02 ex = new Ex02();
         //Escreva o resultado da chamada do método compute() aqui
+        Locale.setDefault(Locale.US);
         final Scanner scanner= new Scanner(System.in);
         final Ex05 ex05= new Ex05();
         System.out.println("Digite o limite:");
@@ -49,6 +51,7 @@ public class Ex05 {
 
     String compute(int L, double m, double a, int v) {
         //String output =  null;
+        Locale.setDefault(Locale.US);
         double preco=0;
         if (v-L>0) preco=m+a*(v-L);
 

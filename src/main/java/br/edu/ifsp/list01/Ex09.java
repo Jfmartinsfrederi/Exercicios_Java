@@ -1,5 +1,8 @@
 package br.edu.ifsp.list01;
 
+import java.util.Locale;
+import java.util.Scanner;
+
 /*
     Faça um programa que leia um conjunto de valores que correspondem as idades de pessoas de uma comunidade. Quando
     o valor fornecido for um número negativo, significa que não existem mais idades para serem lidas. Após a leitura,
@@ -22,11 +25,53 @@ public class Ex09 {
         //Leia o input
         //Crie uma variável do tipo deste arquivo. Exemplo: Ex02 ex = new Ex02();
         //Escreva o resultado da chamada do método compute() aqui
+        Scanner scanner=new Scanner(System.in);
+        final Ex09 ex09=new Ex09();
+        System.out.println("Digite a quantidade de moradores na comunidade:");
+        int qtdPessoas= scanner.nextInt();
+        int[] pessoas=new int[qtdPessoas];
+        int i;
+        for (i=0;i<pessoas.length;i++){
+            System.out.printf("Digite a idade do cidadão %d:",i+1);
+            pessoas[i]= scanner.nextInt();
+
+        }
+
+
+        System.out.println(ex09.compute(pessoas));
+
+
     }
 
     String compute(int[] input) {
-        String output = null;
-        //put your logic here
-        return output;
+        //String output = null;
+        Locale.setDefault(Locale.US);
+        int maiores=0,i=0;
+        double soma=0,idosos=0;
+        while (input[i]>=0){
+            if (input[i]>=0){
+                if (input[i]>17){
+                    maiores++;
+                    if (input[i]>75) idosos++;
+
+                }
+                soma+=input[i];
+
+            }
+            else break;
+            i++;
+
+
+
+        }
+
+        return String.format("%.2f %d %.2f%%",soma/(i),maiores,(idosos/(i))*100);
+
+
+
+
+
+
+        //return output;
     }
 }

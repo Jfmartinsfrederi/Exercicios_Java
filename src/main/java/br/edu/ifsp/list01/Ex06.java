@@ -1,5 +1,6 @@
 package br.edu.ifsp.list01;
 
+import java.util.Locale;
 import java.util.Scanner;
 
 /*
@@ -27,6 +28,7 @@ public class Ex06 {
         //Leia o input
         //Crie uma variável do tipo deste arquivo. Exemplo: Ex02 ex = new Ex02();
         //Escreva o resultado da chamada do método compute() aqui
+        Locale.setDefault(Locale.US);
         final Scanner scanner= new Scanner(System.in);
         final Ex06 ex06= new Ex06();
         System.out.println("Digite a largura da parede:");
@@ -44,13 +46,12 @@ public class Ex06 {
 
     String compute(double L, double a, double c, double m) {
         //String output = null;
+        Locale.setDefault(Locale.US);
         double area=L*a;
-        int cont=0;
-        while (area>0){
-            area-=m;
-            cont++;
+        int cont= (int) Math.ceil(area / m);;
+        //if (area%m>0) cont++;
 
-        }
+
         return String.format("%d %.2f",cont,cont*c);
         //return output;
     }

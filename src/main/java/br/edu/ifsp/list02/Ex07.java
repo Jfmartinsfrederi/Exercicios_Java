@@ -1,5 +1,8 @@
 package br.edu.ifsp.list02;
 
+
+import java.util.Scanner;
+
 /*
     Clara está organizando as fotos da sua última viagem num álbum de fotos. Como ela tem muitas fotos, para economizar
     páginas do álbum ela quer colar duas fotos por página do álbum.
@@ -44,11 +47,37 @@ public class Ex07 {
         //Leia o input
         //Crie uma variável do tipo deste arquivo. Exemplo: Ex02 ex = new Ex02();
         //Escreva o resultado da chamada do método compute() aqui
+        Scanner scanner=new Scanner(System.in);
+        final Ex07 ex07=new Ex07();
+        System.out.println("Digite a largura da página:");
+        int X= scanner.nextInt();
+        System.out.println("Digite a altura da página:");
+        int Y= scanner.nextInt();
+        System.out.println("Digite a largura da 1º foto:");
+        int L1= scanner.nextInt();
+        System.out.println("Digite a altura da 1° foto:");
+        int H1= scanner.nextInt();
+        System.out.println("Digite a largura da 2º foto:");
+        int L2= scanner.nextInt();
+        System.out.println("Digite a altura da 2° foto:");
+        int H2= scanner.nextInt();
+        scanner.close();
+        System.out.println(ex07.compute(X,Y,L1,H1,L2,H2));
     }
 
     String compute(int x, int y, int l1, int h1, int l2, int h2) {
-        String output = null;
-        //put your logic here
-        return output;
+        //String output = null;
+        int flag=0;
+        if (l1+l2>x){
+            if (l1+h2>x) flag++;
+        }
+        if (h1+h2>y) {
+            flag++;
+        }
+        if (flag>=2) return "N";
+        return "S";
+
+
+        //return output;
     }
 }

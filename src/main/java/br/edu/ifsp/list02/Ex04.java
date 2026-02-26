@@ -1,5 +1,9 @@
 package br.edu.ifsp.list02;
 
+import br.edu.ifsp.list01.Ex10;
+
+import java.util.Scanner;
+
 /*
     Você está de volta em seu hotel na Tailândia depois de um dia de mergulhos. O seu quarto tem duas lâmpadas, chamadas
     de A e B. No hotel há dois interruptores, que chamaremos de C1 e C2. Ao apertar C1, a lâmpada A acende se estiver
@@ -30,11 +34,47 @@ public class Ex04 {
         //Leia o input
         //Crie uma variável do tipo deste arquivo. Exemplo: Ex02 ex = new Ex02();
         //Escreva o resultado da chamada do método compute() aqui
+        Scanner scanner=new Scanner(System.in);
+
+        final Ex04 ex04=new Ex04();
+        System.out.println("Digite a o estado inicial da lampada A:");
+        int IA= scanner.nextInt();
+        System.out.println("Digite a o estado inicial da lampada B:");
+        int IB= scanner.nextInt();
+        System.out.println("Digite a o estado final da lampada A:");
+        int FA= scanner.nextInt();
+        System.out.println("Digite a o estado final da lampada B:");
+        int FB= scanner.nextInt();
+        scanner.close();
+        System.out.println(ex04.compute(IA,IB,FA,FB));
     }
 
     int compute(int ia, int ib, int fa, int fb) {
-        int output = -1;
-        //put your logic here
-        return output;
+        //int output = -1;
+        int cont=0;
+        if (ia<0 || ia>1) return -1;
+        if (ib<0 || ib>1) return -1;
+        if (fa<0 || fa>1) return -1;
+        if (fb<0 || fb>1) return -1;
+
+        while (ia!=fa || ib!=fb){
+            if (ib!=fb){
+                if (ib==0) ib=1;
+                else ib=0;
+                if (ia==0) ia=1;
+                else ia=0;
+                cont++;
+            } else if (ia!=fa)
+                {
+                if (ia==0) ia=1;
+                else ia =0;
+                cont++;
+                }
+
+
+        }
+        return cont;
+
+        //return output;
     }
 }
