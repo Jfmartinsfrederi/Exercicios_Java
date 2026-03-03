@@ -14,7 +14,7 @@ class Ex03Test {
     private static Stream<Arguments> arguments() {
 
         return Stream.of(
-                Arguments.of(new int[]{1, 2, 3, 4, 5,0,0,0,0,0}, new int[]{1, 6, 2, 3, 4, 5, 7, 6, 7}, """
+                Arguments.of(new int[]{1, 2, 3, 4, 5}, new int[]{1, 6, 2, 3, 4, 5, 7, 6, 7}, """
                         1 2 3 4 5
                         2 3 4 5
                         2 3 4 5 6
@@ -24,8 +24,8 @@ class Ex03Test {
                         6
                         6 7
                         7"""),
-                Arguments.of(new int[]{1, 2, 2, 3, 4,0,0,0,0,0}, new int[]{}, "Erro"),
-                Arguments.of(new int[]{30, 2, 39, 45, 89,0,0,0,0,0}, new int[]{44, 31, 2, 45, 81, 30, 39, 89, 44, 31, 81}, """
+                Arguments.of(new int[]{1, 2, 2, 3, 4}, new int[]{}, "Erro"),
+                Arguments.of(new int[]{30, 2, 39, 45, 89}, new int[]{44, 31, 2, 45, 81, 30, 39, 89, 44, 31, 81}, """
                         30 2 39 45 89
                         30 2 39 45 89 44
                         30 2 39 45 89 44 31
@@ -37,14 +37,14 @@ class Ex03Test {
                         44 31 81
                         31 81
                         81"""),
-                Arguments.of(new int[]{1, 2, 3, 4, 5,0,0,0,0,0}, new int[]{6, 7, 8, 9, 10}, """
+                Arguments.of(new int[]{1, 2, 3, 4, 5}, new int[]{6, 7, 8, 9, 10}, """
                         1 2 3 4 5
                         1 2 3 4 5 6
                         1 2 3 4 5 6 7
                         1 2 3 4 5 6 7 8
                         1 2 3 4 5 6 7 8 9
                         1 2 3 4 5 6 7 8 9 10"""),
-                Arguments.of(new int[] {1, 2, 3, 4, 5,0,0,0,0,0}, new int[] {1, 2, 3, 4, 5}, """
+                Arguments.of(new int[] {1, 2, 3, 4, 5}, new int[] {1, 2, 3, 4, 5}, """
                         1 2 3 4 5
                         2 3 4 5
                         3 4 5
