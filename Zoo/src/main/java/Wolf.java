@@ -1,4 +1,5 @@
 public class Wolf extends Animal implements RunnableAnimal{
+
     public Wolf(String name) {
         super(name);
     }
