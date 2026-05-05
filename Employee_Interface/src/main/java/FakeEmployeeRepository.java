@@ -10,6 +10,7 @@ public class FakeEmployeeRepository implements Repository <Employee>{
     @Override
     public void saveEntity(Employee entity) {
         employees[numEmployes++]= entity;
+
     }
 
 
@@ -17,8 +18,9 @@ public class FakeEmployeeRepository implements Repository <Employee>{
     public Employee findByID(String id) {
         for (int i = 0; i < numEmployes; i++) {
             Employee employee = employees[i];
-            if (employee.getId().equals(id))
-                return employee;
+            if (employee.getId().equals(id)) return employee;
+
+
         }
         return null;
     }

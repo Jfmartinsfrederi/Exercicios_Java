@@ -2,7 +2,7 @@ import java.time.LocalDate;
 import java.time.Period;
 
 public class Employee {
-    private String id; // TODO if it should be immutable, so make it final.
+    private String id;
     private String name;
     private String jobTitle;
     private double salary;
@@ -16,8 +16,9 @@ public class Employee {
         this.dateOfEmployement = dateOfEmployement;
     }
 
-    public double getYearsOfService() {
-        return Period.between(dateOfEmployement, LocalDate.now()).getYears();
+    public double getYearsOfService(){
+        return  Period.between(dateOfEmployement,LocalDate.now()).getYears();
+
     }
 
     public double calculateBonus() {
@@ -31,6 +32,4 @@ public class Employee {
     public String getId() {
         return id;
     }
-
-    //TODO other getters, toString, equals and hashCode.
 }
