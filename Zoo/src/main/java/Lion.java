@@ -1,5 +1,4 @@
 public class Lion extends Animal implements RunnableAnimal{
-
     public Lion(String name) {
         super(name);
     }

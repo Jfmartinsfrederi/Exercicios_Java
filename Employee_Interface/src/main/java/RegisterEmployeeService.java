@@ -1,15 +1,13 @@
 public class RegisterEmployeeService {
-    private Repository<Employee> repository; // TODO make it final
+    private Repository<Employee> repository;
 
 
     public RegisterEmployeeService(Repository<Employee> repository) {
         this.repository = repository;
     }
 
-    public void register(Employee e) {
-        //TODO validate id
-        if (repository.findByID(e.getId()) != null) return;
-        //TODO add any additional business rules here.
+    public void register(Employee e){
+        if (repository.findByID(e.getId())!=null) return;
         repository.saveEntity(e);
     }
 }

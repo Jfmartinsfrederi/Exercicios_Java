@@ -7,6 +7,4 @@ public abstract class Animal{
 
     public abstract void makeSound();
 
-    //TODO add getter method
-
 }
