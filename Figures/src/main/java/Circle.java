@@ -3,20 +3,20 @@ public final class Circle extends Figure {
 
     public Circle(double x, double y, double radius) {
         super(x, y);
-        if (radius>0) {
+        if (radius > 0) {
             this.radius = radius;
 
         }
     }
 
-    public double circumference(){
-        return Math.PI*2*radius;
+    public double circumference() {
+        return 2 * Math.PI * radius;
     }
-
 
     @Override
-    public double area(){
-        return Math.PI*Math.pow(radius,2);
+    public double area() {
+        return Math.PI * Math.pow(radius, 2);
     }
 
+    //TODO never forget to provide getter methods and toString
 }
