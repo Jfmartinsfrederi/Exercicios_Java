@@ -1,5 +1,5 @@
 public class Zoo {
-    private Animal[] cages;
+    private final Animal[] cages;
     private int numCages;
 
     public Zoo() {
@@ -12,8 +12,8 @@ public class Zoo {
         for (Animal cage : cages) {
             if (cage==null) return;
             cage.makeSound();
-            if (cage instanceof RunnableAnimal){
-                ((RunnableAnimal)cage).run();
+            if (cage instanceof RunnableAnimal runner){
+                runner.run();
             }
 
         }

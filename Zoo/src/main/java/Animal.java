@@ -7,4 +7,7 @@ public abstract class Animal{
 
     public abstract void makeSound();
 
+    public String getName() {
+        return name;
+    }
 }

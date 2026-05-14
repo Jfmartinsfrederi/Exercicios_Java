@@ -1,0 +1,314 @@
+import java.time.LocalDate;
+import java.util.UUID;
+
+public class Main {
+    public static void main(String[] args) {
+        Company company = new Company();
+
+        HiringService hiringService = new HiringService(company);
+        PayrollService payrollService = new PayrollService(company);
+        SalaryService salaryService = new SalaryService(company);
+        EmployeeQueryService queryService = new EmployeeQueryService(company);
+
+        hiringService.hire("1", "João", "Developer", LocalDate.now(), 5000);
+        payrollService.pay("1");
+        salaryService.increaseSalary("1", 7000);
+
+        System.out.println(queryService.getEmployees());
+        System.out.println(salaryService.averageSalary("Developer"));
+
+    }
+}
+
+import java.time.LocalDate;
+import java.util.Objects;
+
+import java.time.LocalDate;
+import java.util.Objects;
+
+public class PayrollService {
+    private final Company company;
+
+    public PayrollService(Company company) {
+        this.company = company;
+    }
+
+    public void pay(String id){
+        Objects.requireNonNull(id,"id must be not null");
+        Employee e = company.findEmployeeById(id);
+        e.addPaycheck(LocalDate.now());
+    }
+}
+
+import java.time.LocalDate;
+import java.util.Objects;
+
+public class SalaryService {
+    private final Company company;
+
+    public SalaryService(Company company) {
+        this.company = company;
+    }
+
+    public void increaseSalary(String id, double salary) {
+        Objects.requireNonNull(id,"id must be not null");
+        Employee e = company.findEmployeeById(id);
+        e.setSalary(salary);
+    }
+
+    public double averageSalary(String jobTitle) {
+        Objects.requireNonNull(jobTitle);
+        if (jobTitle.isBlank()) {
+            throw new IllegalArgumentException("Job title must not be blank.");
+        }
+        return company.getEmployees().stream()
+                .filter(e->e.getJobTitle().equals(jobTitle))
+                .mapToDouble( Employee::getSalary)
+                .average()
+                .orElse(0);
+    }
+
+    public double averageSalary(LocalDate start, LocalDate end) {
+        Objects.requireNonNull(start);
+        Objects.requireNonNull(end);
+
+        return company.getEmployees().stream()
+                .filter(e ->
+                        e.getDateOfEmployment().isAfter(start)
+                                && e.getDateOfEmployment().isBefore(end))
+                .mapToDouble(Employee::getSalary)
+                .average()
+                .orElse(0);
+    }
+
+
+}
+
+
+import java.time.LocalDate;
+import java.time.Period;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Objects;
+
+public class Employee {
+    private final String id;
+    private String name;
+    private String jobTitle;
+    private double salary;
+    private LocalDate dateOfEmployment;
+    private List<Paycheck> paycheckList;
+
+    public Employee(String id, String name, String jobTitle, LocalDate dateOfEmployment, double salary) {
+
+        if (!isValidEmployee(id, name, jobTitle, dateOfEmployment, salary)) {
+            throw new IllegalArgumentException("Funcionário inválido");
+        }
+
+        this.id = id;
+        this.name = name;
+        this.jobTitle = jobTitle;
+        this.dateOfEmployment = dateOfEmployment;
+        this.salary = salary;
+        this.paycheckList = new ArrayList<>();
+    }
+
+    public double getYearsOfService() {
+        return Period.between(dateOfEmployment, LocalDate.now()).getYears();
+    }
+
+    public void addPaycheck(LocalDate payday) {
+        paycheckList.add(new Paycheck(payday, salary));
+
+    }
+
+    public void removePaycheck(Paycheck paycheck) {
+        paycheckList.remove(paycheck);
+    }
+
+    public Iterator<Paycheck> iteratorPaycheck() {
+        return paycheckList.iterator();
+    }
+
+
+    private boolean isValidEmployee(String id, String name,
+                                    String jobTitle, LocalDate dateOfEmployment, double salary) {
+        return id != null && name != null && jobTitle != null && dateOfEmployment != null && salary > 0;
+    }
+
+
+    public String getId() {
+        return id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public String getJobTitle() {
+        return jobTitle;
+    }
+
+    public double getSalary() {
+        return salary;
+    }
+
+    public LocalDate getDateOfEmployment() {
+        return dateOfEmployment;
+    }
+
+    public void setSalary(double salary) {
+
+        if (salary > this.salary) this.salary = salary;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Employee employee = (Employee) o;
+        return Objects.equals(id, employee.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(id);
+    }
+
+    @Override
+    public String toString() {
+        return name;
+    }
+}
+
+import java.time.LocalDate;
+import java.util.Objects;
+
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
+
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
+
+public class EmployeeQueryService {
+    private final Company company;
+
+    public EmployeeQueryService(Company company) {
+        this.company = company;
+    }
+
+
+
+    public List<Employee> getEmployees(String jobTitle){
+        Objects.requireNonNull(jobTitle);
+        if (jobTitle.isBlank()) {
+            throw new IllegalArgumentException("Job title must not be blank.");
+        }
+        return company.getEmployees().stream()
+                .filter(e-> e.getJobTitle().equals(jobTitle))
+                .toList();
+
+    }
+
+
+
+}
+
+
+import java.time.LocalDate;
+import java.util.Objects;
+
+public class Paycheck {
+    private final LocalDate payday;
+    private final double salary;
+
+    public Paycheck(LocalDate payday, double salary) {
+        this.payday = payday;
+        this.salary = salary;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Paycheck that)) return false;
+        return Double.compare(that.salary, salary) == 0 &&
+                payday.equals(that.payday);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(payday, salary);
+    }
+}
+import java.time.LocalDate;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.TreeMap;
+
+import java.time.LocalDate;
+import java.util.*;
+
+public class Company {
+    private final Map<String, Employee> employeeMap;
+
+    public Company() {
+        this.employeeMap = new TreeMap<>();
+    }
+
+    public void hire(String id, String name, String jobTitle,
+                    LocalDate dateOfEmployment, double salary) {
+
+        Objects.requireNonNull(id, "Id must not be null.");
+
+        if (employeeMap.containsKey(id)) {
+            throw new EntityAlreadyExistsException(
+                    "Employee is already registered.");
+        }
+
+        employeeMap.put(id,
+                new Employee(id, name, jobTitle,
+                        dateOfEmployment, salary));
+    }
+
+    public void fire(String id) {
+        findEmployeeById(id);
+        employeeMap.remove(id);
+    }
+
+    public Employee findEmployeeById(String id) {
+        Employee employee = employeeMap.get(id);
+        if (employee == null) {
+            throw new EntityNotFoundException("Employee is not registered.");
+        }
+        return employee;
+    }
+
+    public boolean containsEmployee(String id) {
+        return employeeMap.containsKey(id);
+    }
+
+    public Collection<Employee> getEmployees() {
+        return Collections.unmodifiableCollection(employeeMap.values());
+    }
+
+
+
+
+}
+
+
+
+public class EntityAlreadyExistsException extends RuntimeException{
+    public EntityAlreadyExistsException(String message) {
+        super(message);
+    }
+}
+public class EntityNotFoundException extends RuntimeException {
+    public EntityNotFoundException(String message) {
+        super(message);
+    }
+}

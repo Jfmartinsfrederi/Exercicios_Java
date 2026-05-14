@@ -1,8 +1,9 @@
 import java.time.LocalDate;
 import java.time.Period;
+import java.util.Objects;
 
 public class Employee {
-    private String id;
+    private final String id;
     private String name;
     private String jobTitle;
     private double salary;
@@ -31,5 +32,17 @@ public class Employee {
 
     public String getId() {
         return id;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == null || getClass() != o.getClass()) return false;
+        Employee employee = (Employee) o;
+        return Objects.equals(id, employee.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(id);
     }
 }

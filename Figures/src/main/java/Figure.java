@@ -10,14 +10,19 @@ public sealed abstract class Figure permits Triangle, Rectangle, Circle {
 
     public abstract double area();
 
-
-
-
     public double getX() {
         return x;
     }
 
     public double getY() {
         return y;
+    }
+
+    @Override
+    public String toString() {
+        return "Figure{" +
+                "x=" + x +
+                ", y=" + y +
+                '}';
     }
 }

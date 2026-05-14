@@ -1,0 +1,474 @@
+import Domain.FakeDeclaracaoRepository;
+import application.*;
+
+public class Main {
+    void main(){
+        DeclaracaoRepository repo = new FakeDeclaracaoRepository();
+
+        final AdicionarGastoTributavelSrevice addGastoService = new AdicionarGastoTributavelSrevice(repo);
+        final CriarDeclaracoesService criarDeclaracaoService = new CriarDeclaracoesService(repo);
+        final CriarRelatorioDeclaracoesService relatorioService = new CriarRelatorioDeclaracoesService(repo);
+
+        criarDeclaracaoService.criarDeclaracoes(1,50_000.0, 5_000.0);
+
+        addGastoService.adicionarGasto(1,1, "Corote", "123", 3.59, TipoGasto.EDUCACAO, "IFSP");
+        addGastoService.adicionarGasto(1,2, "Unimed", "312", 1_000.0, TipoGasto.SAUDE, "31231RDN");
+
+        System.out.println(relatorioService.criarRelatorio(1));
+    }
+}
+package application;
+
+import Domain.DeclaracaoCompleta;
+import Domain.Gasto;
+import Domain.GastoEducacao;
+import Domain.GastoSaude;
+
+public class AdicionarGastoTributavelSrevice {
+    private final DeclaracaoRepository repo;
+
+    public AdicionarGastoTributavelSrevice(DeclaracaoRepository repo) {
+        this.repo = repo;
+    }
+
+    public void adicionarGasto(long idDeclaracao,long id, String descricao, String cnpj, double valor, TipoGasto tipo, String adicional){
+        if(id < 0 || idDeclaracao<0) throw new IllegalArgumentException("Id não pode ser negativo");
+        if (valor<=0) throw new IllegalArgumentException("Valor não pode ser negativo");
+        final DeclaracaoCompleta declaracao= (DeclaracaoCompleta) repo.buscarPorId(idDeclaracao)
+                .orElseThrow(IllegalStateException::new);
+        Gasto gasto= switch (tipo){
+            case SAUDE -> new GastoSaude(id,descricao,valor,cnpj,adicional);
+            case EDUCACAO -> new GastoEducacao(id,descricao,valor,cnpj,adicional);
+        };
+        declaracao.addGasto(gasto);
+        repo.atualizar(declaracao);
+
+    }
+}
+package application;
+
+import Domain.DeclaracaoCompleta;
+import Domain.DeclaracaoSimplificada;
+
+public class CriarDeclaracoesService {
+    private final DeclaracaoRepository repo;
+
+    public CriarDeclaracoesService(DeclaracaoRepository repo) {
+        this.repo = repo;
+    }
+    public void criarDeclaracoes(long id,double ganhoTributavel, double valorPago){
+        if(id < 0) throw new IllegalArgumentException("Id não pode ser negativo");
+        if(ganhoTributavel < 0) throw new IllegalArgumentException("Ganho tributável inválido: " + ganhoTributavel);
+        if(valorPago < 0) throw new IllegalArgumentException("Valor pago inválido: " + valorPago);
+
+        final DeclaracaoCompleta declaracaoCompleta = new DeclaracaoCompleta(id, ganhoTributavel, valorPago);
+        final DeclaracaoSimplificada declaracaoSimplificada = new DeclaracaoSimplificada(id+1, ganhoTributavel, valorPago);
+
+        repo.salvar(declaracaoCompleta);
+        repo.salvar(declaracaoSimplificada);
+    }
+
+}
+package application;
+
+import Domain.Declaracao;
+
+public class CriarRelatorioDeclaracoesService {
+    private final DeclaracaoRepository repo;
+
+    public CriarRelatorioDeclaracoesService(DeclaracaoRepository repo) {
+        this.repo = repo;
+    }
+    public String criarRelatorio (long id){
+        if(id < 0) throw new IllegalArgumentException("Id não pode ser negativo");
+        final Declaracao completa = repo.buscarPorId(id).orElseThrow(IllegalStateException::new);
+        final Declaracao simplificada = repo.buscarPorId(id+1).orElseThrow(IllegalStateException::new);
+
+        return simplificada + "\n\n" + completa;
+    }
+}
+package application;
+
+import Domain.Declaracao;
+
+import java.util.Optional;
+
+public interface DeclaracaoRepository {
+    void salvar(Declaracao declaracao);
+    void atualizar(Declaracao declaracao);
+    void remover(Declaracao declaracao);
+    void remover(long id);
+    Optional<Declaracao> buscarPorId(long id);
+}
+package application;
+
+public enum TipoGasto {
+    SAUDE,EDUCACAO;
+}
+package DAO;
+
+public interface Entidade <K>{
+   K getId();
+
+
+}
+package DAO;
+
+import java.util.*;
+
+public abstract class GenericDAO<K, T extends Entidade<K>> {
+    private final Map<K,T> repository;
+
+    public GenericDAO() {
+        this.repository = new TreeMap<>();
+    }
+
+    public void saveEntity(T entidade){
+        repository.put(entidade.getId(), entidade);
+
+
+
+    }
+
+    public void removeEntity(K id){
+        repository.remove(id);
+    }
+
+    public void replaceEntity(T entidade){
+        repository.replace(entidade.getId(), entidade);
+    }
+
+    public Collection<T> getEntitys(){
+        return Collections.unmodifiableCollection(repository.values());
+    }
+
+}
+package Domain;
+
+import java.util.Objects;
+
+public abstract sealed class  Declaracao permits DeclaracaoSimplificada, DeclaracaoCompleta {
+    private final long id;
+    private double ganhoTributavel;
+    private double valorPago;
+
+    public Declaracao(long id, double ganhoTributavel, double valorPago) {
+        this.id = id;
+        this.ganhoTributavel = ganhoTributavel;
+        this.valorPago = valorPago;
+    }
+
+    public final double getValorAPagar(){
+        return getValorImposto()-valorPago-getDespesaDedutivel();
+    }
+
+    public double getDespesaDedutivel(){
+        return 0;
+    }
+
+    public abstract double getValorImposto();
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == null || getClass() != o.getClass()) return false;
+        Declaracao that = (Declaracao) o;
+        return id == that.id;
+    }
+
+    @Override
+    public int hashCode() {
+        return Long.hashCode(id);
+    }
+
+    public long getId() {
+        return id;
+    }
+
+    public double getGanhoTributavel() {
+        return ganhoTributavel;
+    }
+
+    public double getValorPago() {
+        return valorPago;
+    }
+
+    @Override
+    public String toString() {
+        return "Declaracao{" +
+                "id=" + id +
+                ", ganhoTributavel=" + ganhoTributavel +
+                ", valorPago=" + valorPago +
+                '}';
+    }
+}
+package Domain;
+
+import java.util.Map;
+import java.util.TreeMap;
+import java.util.stream.Collectors;
+
+public final class DeclaracaoCompleta extends Declaracao{
+    private final Map<Long,Gasto> gastos;
+
+    public DeclaracaoCompleta(long id,double ganhoTributavel, double valorPago) {
+        super(id,ganhoTributavel, valorPago);
+        this.gastos = new TreeMap<>();
+    }
+
+    @Override
+    public double getValorImposto() {
+        double[] valores={22847.88, 33919.92, 45012.73, 55976.16};
+        double[] percents={0.075,0.15,0.225,0.275};
+        double ganho=getGanhoTributavel();
+        double valor_imposto =0;
+        for (int i= valores.length-1;i>0;i--){
+            if (ganho>valores[i]){
+                valor_imposto +=(ganho-valores[i])*percents[i];
+                ganho=valores[i];
+            }
+
+        }
+
+
+
+        return valor_imposto;
+    }
+
+    @Override
+    public double getDespesaDedutivel() {
+        double saude,educacao;
+
+        saude=Math.min(GastoSaude.DEDUCAO_MAX_SAUDE,gastos.values().stream()
+                .filter(g-> g instanceof GastoSaude )
+                .mapToDouble(Gasto::getValor).sum());
+
+        educacao=Math.min(GastoEducacao.DEDUCAO_MAX_EDUCACAO,gastos.values().stream()
+                .filter(g-> g instanceof GastoEducacao )
+                .mapToDouble(Gasto::getValor).sum() );
+
+        return saude+educacao;
+    }
+
+    public void addGasto(Gasto gasto){
+        if (gastos.containsKey(gasto.getId())) throw new EntityAlreadyExists("Gasto já cadastrado");
+        gastos.put(gasto.getId(),gasto);
+
+    }
+
+    public void removeGasto(Gasto gasto){
+        validIdGAsto(gasto);
+        gastos.remove(gasto.getId());
+    }
+
+    private void validIdGAsto(Gasto gasto) {
+        if (!gastos.containsKey(gasto.getId())) throw new EntityNoExists("Gasto não cadastrado");
+    }
+
+    public void editarGasto(Gasto gasto){
+        validIdGAsto(gasto);
+        gastos.replace(gasto.getId(), gasto);
+    }
+
+    public void listarGastos(){
+        for (Gasto gasto : gastos.values()) {
+            System.out.println(gasto);
+        }
+    }
+
+
+
+    @Override
+    public String toString() {
+        return """
+                %s
+                %s
+                """.formatted(super.toString(),gastos.values().stream()
+                .map(Gasto::toString).collect(Collectors.joining("\n")));
+    }
+}
+package Domain;
+
+public final class DeclaracaoSimplificada extends Declaracao{
+
+
+    public DeclaracaoSimplificada(long id,double ganhoTributavel, double valorPago) {
+        super(id,ganhoTributavel, valorPago);
+    }
+
+    @Override
+    public double getValorImposto() {
+        if(getGanhoTributavel() <= 22_847.88) return 0.0;
+        return (getGanhoTributavel() - 22_847.88) * 0.2;
+    }
+
+    @Override
+    public String toString() {
+        return "DeclaracaoSimplificada{%s}".formatted(super.toString());
+    }
+}
+package Domain;
+
+public class EntityAlreadyExists extends RuntimeException {
+    public EntityAlreadyExists(String message) {
+        super(message);
+    }
+}
+package Domain;
+
+public class EntityNoExists extends RuntimeException {
+    public EntityNoExists(String message) {
+        super(message);
+    }
+}
+package Domain;
+
+import application.DeclaracaoRepository;
+
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.NoSuchElementException;
+import java.util.Optional;
+
+public class FakeDeclaracaoRepository implements DeclaracaoRepository {
+    private static final Map<Long,Declaracao> repository=new LinkedHashMap<>();
+
+    @Override
+    public void salvar(Declaracao declaracao) {
+        final long id=declaracao.getId();
+        if (repository.containsKey(id)) throw new EntityAlreadyExists("Entidade já cadastrada");
+        repository.put(id,declaracao);
+
+    }
+
+    @Override
+    public void atualizar(Declaracao declaracao) {
+        final long id=declaracao.getId();
+        idExists(id);
+        repository.replace(id,declaracao);
+    }
+
+    private static void idExists(long id) {
+        if (!repository.containsKey(id)) throw new NoSuchElementException("Entidade Não Cadastrada");
+    }
+
+    @Override
+    public void remover(Declaracao declaracao) {
+        remover(declaracao.getId());
+
+    }
+
+    @Override
+    public void remover(long id) {
+        idExists(id);
+        repository.remove(id);
+
+    }
+
+    @Override
+    public Optional<Declaracao> buscarPorId(long id) {
+        return Optional.ofNullable(repository.get(id));
+    }
+}
+package Domain;
+
+import java.util.Objects;
+
+public abstract sealed class Gasto permits GastoSaude, GastoEducacao {
+    private long id;
+    private String descricao;
+    private double valor;
+    private String cnpj;
+
+    public Gasto(long id, String descricao, double valor, String cnpj) {
+        if (!isValidGasto(id,descricao,valor,cnpj)) return;
+        this.id = id;
+        this.descricao = descricao;
+        this.valor = valor;
+        this.cnpj = cnpj;
+
+    }
+
+    private boolean isValidGasto(long id, String descricao, double valor, String cnpj) {
+        if (valor<=0) throw new RuntimeException("values must be grather than 0");
+        if (descricao.isBlank() || cnpj.isBlank()) throw new RuntimeException("values ust be not blank");
+        return true;
+    }
+
+
+    public long getId() {
+        return id;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == null || getClass() != o.getClass()) return false;
+        Gasto gasto = (Gasto) o;
+        return id == gasto.id;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(id);
+    }
+
+    @Override
+    public String toString() {
+        return "Gasto{" +
+                "id=" + id +
+                ", descricao='" + descricao + '\'' +
+                ", valor=" + valor +
+                ", cnpj='" + cnpj + '\'' +
+                '}';
+    }
+
+    public String getDescricao() {
+        return descricao;
+    }
+
+    public double getValor() {
+        return valor;
+    }
+
+    public String getCnpj() {
+        return cnpj;
+    }
+}
+package Domain;
+
+public final class GastoEducacao extends Gasto {
+    private String nomeInstituicao;
+    public static final double DEDUCAO_MAX_EDUCACAO=2000;
+
+    public GastoEducacao(long id, String descricao, double valor, String cnpj, String nomeInstituicao) {
+        super(id, descricao, valor, cnpj);
+        this.nomeInstituicao = nomeInstituicao;
+    }
+
+    @Override
+    public String toString() {
+        return  super.toString()+
+                "GastoEducacao{" +
+                "nomeInstituicao='" + nomeInstituicao + '\'' +
+                '}';
+    }
+}
+package Domain;
+
+public final class GastoSaude extends Gasto{
+    private String registroConselho;
+    public static final double DEDUCAO_MAX_SAUDE=1500;
+
+    public GastoSaude(long id, String descricao, double valor, String cnpj, String registroConselho) {
+        super(id, descricao, valor, cnpj);
+        this.registroConselho = registroConselho;
+    }
+
+    @Override
+    public String toString() {
+        return super.toString()+
+                "Domain.GastoSaude{" +
+                "registroConselho='" + registroConselho + '\'' +
+
+                '}';
+    }
+}

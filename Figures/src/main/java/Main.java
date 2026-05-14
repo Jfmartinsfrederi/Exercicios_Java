@@ -14,6 +14,7 @@ public class Main {
 
         for (Figure f : figuras) {
             sum += f.area();
+            System.out.println(f);
         }
 
         System.out.println("Soma total: " + sum);

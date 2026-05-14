@@ -12,4 +12,8 @@ public class Wolf extends Animal implements RunnableAnimal{
         System.out.println("Wolf is running");
     }
 
+    @Override
+    public String toString() {
+        return "A wolf named %s".formatted(getName());
+    }
 }

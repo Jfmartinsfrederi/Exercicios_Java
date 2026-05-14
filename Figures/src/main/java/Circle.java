@@ -19,4 +19,16 @@ public final class Circle extends Figure {
         return Math.PI*Math.pow(radius,2);
     }
 
+    public double getRadius() {
+        return radius;
+    }
+
+    @Override
+    public String toString() {
+        return "Circle{" +
+                "radius=" + radius +
+                ", x=" + x +
+                ", y=" + y +
+                '}';
+    }
 }

@@ -16,4 +16,21 @@ public final class Rectangle extends Figure{
         return a*b;
     }
 
+    public double getA() {
+        return a;
+    }
+
+    public double getB() {
+        return b;
+    }
+
+    @Override
+    public String toString() {
+        return "Rectangle{" +
+                "a=" + a +
+                ", b=" + b +
+                ", x=" + x +
+                ", y=" + y +
+                '}';
+    }
 }

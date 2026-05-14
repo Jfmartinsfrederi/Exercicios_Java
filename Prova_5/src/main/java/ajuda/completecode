@@ -1,0 +1,324 @@
+import model.InMemoryEmployeeRepository;
+import service.EmployeeRegistrationService;
+import service.EmployeeReportService;
+
+import java.time.LocalDate;
+
+public class Main {
+    public static void main(String[] args) {
+        InMemoryEmployeeRepository inMemoryEmployeeRepository = new InMemoryEmployeeRepository();
+        EmployeeRegistrationService employeeRegistration = new EmployeeRegistrationService(inMemoryEmployeeRepository);
+        EmployeeReportService employeeReport = new EmployeeReportService(inMemoryEmployeeRepository);
+        employeeRegistration.register("12312312312",
+                "David A. Huffman", LocalDate.parse("1925-08-09"), 7000.0, null);
+
+        employeeRegistration.register("21321321313", "Edsger Wybe Dijkstra",
+                LocalDate.parse("1930-05-11"), 1520.0, "12312312312");
+
+        employeeRegistration.register("54654654654", "Grace Murray Hopper",
+                LocalDate.parse("1906-12-09"), 432.0, "21321321313");
+
+        employeeRegistration.register("32132132131",
+                "Augusta Ada Byron", LocalDate.parse("1852-11-27"), 3000.0, "12312312312");
+
+
+
+        employeeRegistration.register("45645645646", "Alan Mathison Turing",
+                LocalDate.parse("1912-06-23"), 780.0, "32132132131");
+
+        employeeRegistration.register("90219021902", "Donald Ervin Knuth",
+                LocalDate.parse("1938-01-10"), 432.0, "45645645646");
+
+
+
+        employeeRegistration.register("65465465464", "John von Neumann",
+                LocalDate.parse("1903-12-28"), 300.00, "45645645646");
+
+
+        System.out.println(employeeReport.reportOf("12312312312"));
+
+        System.out.println(employeeReport.reportOf("32132132131"));
+
+    }
+}
+
+package model;
+
+import java.time.LocalDate;
+
+public final class Reseller extends Employee{
+    public Reseller(String id, String name, LocalDate birthDate, double soldValue) {
+        super(id, name, birthDate, soldValue);
+    }
+
+    @Override
+    public double getCommission() {
+        return getSoldValue()*0.15;
+    }
+
+
+}
+package model;
+
+import exception.EntityAlreadyExistsException;
+
+import java.time.LocalDate;
+import java.util.Collections;
+import java.util.LinkedHashSet;
+import java.util.NoSuchElementException;
+import java.util.Set;
+
+public final class Consultant extends Employee {
+    private final Set<Employee> employees;
+
+    public Consultant(String id, String name, LocalDate birthDate, double soldValue) {
+        super(id, name, birthDate, soldValue);
+        this.employees = new LinkedHashSet<>();
+    }
+
+    public void addEmployee(Employee e) {
+        if (employees.contains(e)) throw new EntityAlreadyExistsException("Entity already exsists");
+        employees.add(e);
+
+
+    }
+
+
+    @Override
+    public double getCommission() {
+        return getSoldValue() * 0.15 + employees.stream()
+                .mapToDouble(Employee::getCommission).sum() * 0.3;
+
+
+    }
+
+    public Set<Employee> getEmployees() {
+        return Collections.unmodifiableSet(employees);
+
+
+
+    }
+
+}
+package service;
+
+import model.Consultant;
+import model.Employee;
+import model.Reseller;
+import persistence.Repository;
+
+import java.time.LocalDate;
+import java.util.List;
+import java.util.Objects;
+
+public class EmployeeRegistrationService {
+    private final Repository repository;
+
+    public EmployeeRegistrationService(Repository repository) {
+        this.repository = repository;
+    }
+
+    public void register(String id, String name, LocalDate birthDate,
+                         double soldValue, String id_consultor) {
+        Objects.requireNonNull(id, "Id must be not null" + id);
+        if (id.isBlank()) throw new IllegalArgumentException("Id must be not blank");
+        for (Object obj : new Object[]{name, birthDate, soldValue}) {
+            Objects.requireNonNull(obj, "Valor não pode ser nulo" + obj);
+
+        }
+        Employee employee = new Reseller(id, name, birthDate, soldValue);
+        if (id_consultor == null) {
+            repository.save(employee);
+        } else {
+            List<Employee> list = repository.findById(id_consultor);
+            Employee promovido = list.get(0);
+            list.remove(promovido);
+            Consultant consultor= new Consultant(promovido.getId(), promovido.getName(),
+                        promovido.getBirthDate(), promovido.getSoldValue());
+
+            for (Employee employee1 : list) {
+
+                consultor.addEmployee(employee1);
+            }
+            consultor.addEmployee(employee);
+            repository.save(employee);
+            repository.update(consultor);
+
+
+
+
+        }
+
+
+    }
+
+
+}
+package service;
+
+import model.Employee;
+import model.Reseller;
+import persistence.Repository;
+
+import java.util.List;
+import java.util.Objects;
+import java.util.StringJoiner;
+
+public class EmployeeReportService {
+    private final Repository repository;
+
+    public EmployeeReportService(Repository repository) {
+        this.repository = repository;
+    }
+
+    public String reportOf(String id){
+        Objects.requireNonNull(id, "Id must be not null" + id);
+        if (id.isBlank()) throw new IllegalArgumentException("Id must be not blank");
+        List<Employee> employees = repository.findById(id);
+        int count=0;
+        StringBuilder string= new StringBuilder();
+        for (Employee employee : employees) {
+            string.append(employee+"\n");
+            if (!(employee instanceof Reseller)) {
+                count++;
+            }
+            for (int i = 0; i < count; i++) {
+                string.append("\t");
+            }
+
+
+        }
+        return string.toString();
+
+
+    }
+}
+package model;
+
+import exception.EntityAlreadyExistsException;
+import persistence.Repository;
+
+import java.util.*;
+
+public class InMemoryEmployeeRepository implements Repository<String,Employee> {
+    private final Map<String,Employee> repository= new TreeMap<>();
+
+
+    @Override
+    public void save(Employee e) {
+        final String id=e.getId();
+        if (repository.containsKey(id)) throw new EntityAlreadyExistsException("Employe already exists");
+        repository.put(id,e);
+    }
+
+    @Override
+    public void update(Employee e) {
+        final String id=e.getId();
+        existId(id);
+        repository.replace(id,e);
+    }
+
+    private void existId(String id) {
+        if (!repository.containsKey(id)) throw new NoSuchElementException("Employee not registered");
+    }
+
+    @Override
+    public void remove(String id) {
+        existId(id);
+        repository.remove(id);
+
+    }
+
+    @Override
+    public List<Employee> findById(String id) {
+        Employee e = repository.get(id);
+        List<Employee> employees = new ArrayList<>();
+        employees.add(e);
+
+        if (e instanceof Consultant) {
+            List<Employee> reserva = new ArrayList<>(((Consultant) e).getEmployees());
+            for (Employee r : reserva) {
+                employees.addAll(this.findById(r.getId()));
+
+            }
+
+
+        }
+        return employees;
+    }
+}
+package persistence;
+
+
+import java.util.List;
+
+public interface Repository <K,T> {
+    void save(T e);
+    void update(T e);
+    void remove(K id);
+    List<T> findById(K id);
+
+}
+package exception;
+
+public class EntityAlreadyExistsException extends RuntimeException {
+    public EntityAlreadyExistsException(String message) {
+        super(message);
+    }
+}
+package model;
+
+import java.time.LocalDate;
+import java.util.Objects;
+
+public abstract sealed class Employee permits Reseller,Consultant {
+    private final String id;
+    private String name;
+    private LocalDate birthDate;
+    private double soldValue;
+
+    public Employee(String id, String name, LocalDate birthDate, double soldValue) {
+        this.id = id;
+        this.name = name;
+        this.birthDate = birthDate;
+        this.soldValue = soldValue;
+    }
+
+    public abstract double getCommission();
+
+
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == null || getClass() != o.getClass()) return false;
+        Employee employee = (Employee) o;
+        return Objects.equals(id, employee.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(id);
+    }
+
+    public String getId() {
+        return id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public LocalDate getBirthDate() {
+        return birthDate;
+    }
+
+    public double getSoldValue() {
+        return soldValue;
+    }
+
+    @Override
+    public String toString() {
+        return """
+                [%s] %s | Birthday: %s | Amount in sales: US$%.2f | Commission: US$%.2f""".formatted(id,name,birthDate,soldValue,getCommission());
+    }
+}
