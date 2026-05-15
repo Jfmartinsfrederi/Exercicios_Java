@@ -22,4 +22,6 @@ public class Paycheck {
     public int hashCode() {
         return Objects.hash(payday, salary);
     }
+
+    //TODO getters, to string
 }

@@ -30,10 +30,11 @@ public class SalaryService {
         Objects.requireNonNull(start);
         Objects.requireNonNull(end);
 
+        //TODO tá quase certo. Você considerou só o salário atual de cada, mas na verdade, tem que considerar todos os paychecks de todos os employees, pois eles podem ter sido promovidos (é aqui que entrar o flatMap)
         return company.getEmployees().stream()
                 .filter(e ->
                         e.getDateOfEmployment().isAfter(start)
-                                && e.getDateOfEmployment().isBefore(end))
+                                && e.getDateOfEmployment().isBefore(end)) // TODO quebrar esse filter em dois filters, para evitar o &&
                 .mapToDouble(Employee::getSalary)
                 .average()
                 .orElse(0);

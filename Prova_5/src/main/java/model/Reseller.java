@@ -11,6 +11,4 @@ public final class Reseller extends Employee{
     public double getCommission() {
         return getSoldValue()*0.15;
     }
-
-
 }

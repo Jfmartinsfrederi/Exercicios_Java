@@ -1,9 +1,10 @@
-import model.InMemoryEmployeeRepository;
+import persistence.InMemoryEmployeeRepository;
 import service.EmployeeRegistrationService;
 import service.EmployeeReportService;
 
 import java.time.LocalDate;
 
+//TODO what a hell? 
 public class Main {
     public static void main(String[] args) {
         InMemoryEmployeeRepository inMemoryEmployeeRepository = new InMemoryEmployeeRepository();

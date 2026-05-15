@@ -1,4 +1,4 @@
-import model.InMemoryEmployeeRepository;
+import persistence.InMemoryEmployeeRepository;
 import service.EmployeeRegistrationService;
 import service.EmployeeReportService;
 

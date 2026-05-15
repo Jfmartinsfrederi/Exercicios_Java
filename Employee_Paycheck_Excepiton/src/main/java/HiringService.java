@@ -11,6 +11,7 @@ public class HiringService {
     public void hire(String id, String name, String jobTitle,
                      LocalDate dateOfEmployment, double salary) {
 
+        //TODO muito código repetido. Porque não criar um método privado isValidString(value)
         Objects.requireNonNull(id, "Id must not be null.");
         Objects.requireNonNull(name, "Name must not be null.");
         Objects.requireNonNull(jobTitle, "Job title must not be null.");

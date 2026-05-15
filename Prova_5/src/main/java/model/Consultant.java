@@ -17,26 +17,18 @@ public final class Consultant extends Employee {
     }
 
     public void addEmployee(Employee e) {
-        if (employees.contains(e)) throw new EntityAlreadyExistsException("Entity already exsists");
+        if (employees.contains(e)) throw new EntityAlreadyExistsException("Entity already exists");
         employees.add(e);
-
-
     }
-
 
     @Override
     public double getCommission() {
         return getSoldValue() * 0.15 + employees.stream()
                 .mapToDouble(Employee::getCommission).sum() * 0.3;
-
-
     }
 
+    //TODO remova linhas em branco desnecessárias
     public Set<Employee> getEmployees() {
         return Collections.unmodifiableSet(employees);
-
-
-
     }
-
 }

@@ -3,11 +3,12 @@ package model;
 import java.time.LocalDate;
 import java.util.Objects;
 
-public abstract sealed class Employee permits Reseller,Consultant {
+//TODO everything fine here in domain.
+public abstract sealed class Employee permits Reseller, Consultant {
     private final String id;
-    private String name;
-    private LocalDate birthDate;
-    private double soldValue;
+    private final String name;
+    private final LocalDate birthDate;
+    private final double soldValue;
 
     public Employee(String id, String name, LocalDate birthDate, double soldValue) {
         this.id = id;
@@ -17,8 +18,6 @@ public abstract sealed class Employee permits Reseller,Consultant {
     }
 
     public abstract double getCommission();
-
-
 
     @Override
     public boolean equals(Object o) {
@@ -51,6 +50,6 @@ public abstract sealed class Employee permits Reseller,Consultant {
     @Override
     public String toString() {
         return """
-                [%s] %s | Birthday: %s | Amount in sales: US$%.2f | Commission: US$%.2f""".formatted(id,name,birthDate,soldValue,getCommission());
+                [%s] %s | Birthday: %s | Amount in sales: US$%.2f | Commission: US$%.2f""".formatted(id, name, birthDate, soldValue, getCommission());
     }
 }

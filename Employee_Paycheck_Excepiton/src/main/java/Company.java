@@ -1,7 +1,10 @@
 import java.time.LocalDate;
 import java.util.*;
 
+//TODO se for utilizar os services, não precisa do Company mais.
+//TODO defina uma interface EmployeeRepository e uma classe FakeEmployeeRepository (que vai guardar as coisas num map estático)
 public class Company {
+
     private final Map<String, Employee> employeeMap;
 
     public Company() {

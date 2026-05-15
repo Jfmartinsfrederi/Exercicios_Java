@@ -27,29 +27,50 @@ public class Employee {
         this.paycheckList = new ArrayList<>();
     }
 
+    //TODO deixe o método próximo de onde ele é utilizado.
+    private boolean isValidEmployee(String id, String name, String jobTitle, LocalDate dateOfEmployment, double salary) {
+        return id != null && name != null && jobTitle != null && dateOfEmployment != null && salary > 0;
+    }
+
     public double getYearsOfService() {
         return Period.between(dateOfEmployment, LocalDate.now()).getYears();
     }
 
     public void addPaycheck(LocalDate payday) {
         paycheckList.add(new Paycheck(payday, salary));
-
     }
 
     public void removePaycheck(Paycheck paycheck) {
         paycheckList.remove(paycheck);
     }
 
+    //TODO métodos com implementação antes dos getters.
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Employee employee = (Employee) o;
+        return Objects.equals(id, employee.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(id);
+    }
+
+    @Override
+    public String toString() {
+        return name;
+    }
+
+    //TODO como tem implementação diferente da padrão, colocar mais para cima, antes dos outros.
+    public void setSalary(double salary) {
+        if (salary > this.salary) this.salary = salary; // TODO aqui pode até disparar uma IllegalArgument se ele tiver diminuindo o salário.
+    }
+
     public Iterator<Paycheck> iteratorPaycheck() {
         return paycheckList.iterator();
     }
-
-
-    private boolean isValidEmployee(String id, String name,
-                                    String jobTitle, LocalDate dateOfEmployment, double salary) {
-        return id != null && name != null && jobTitle != null && dateOfEmployment != null && salary > 0;
-    }
-
 
     public String getId() {
         return id;
@@ -69,29 +90,6 @@ public class Employee {
 
     public LocalDate getDateOfEmployment() {
         return dateOfEmployment;
-    }
-
-    public void setSalary(double salary) {
-
-        if (salary > this.salary) this.salary = salary;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        Employee employee = (Employee) o;
-        return Objects.equals(id, employee.id);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hashCode(id);
-    }
-
-    @Override
-    public String toString() {
-        return name;
     }
 }
     
