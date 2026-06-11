@@ -1,0 +1,43 @@
+package model;
+
+import java.time.LocalDate;
+import java.util.Objects;
+
+public class Paycheck {
+    private final LocalDate payday;
+    private final double salary;
+
+    public Paycheck(LocalDate payday, double salary) {
+        this.payday = payday;
+        this.salary = salary;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Paycheck that)) return false;
+        return Double.compare(that.salary, salary) == 0 &&
+                payday.equals(that.payday);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(payday, salary);
+    }
+
+    @Override
+    public String toString() {
+        return "model.Paycheck{" +
+                "payday=" + payday +
+                ", salary=" + salary +
+                '}';
+    }
+
+    public LocalDate getPayday() {
+        return payday;
+    }
+
+    public double getSalary() {
+        return salary;
+    }
+}

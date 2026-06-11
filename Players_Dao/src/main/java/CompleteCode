@@ -1,0 +1,276 @@
+package dao;
+
+import dto.PlayerDTO;
+import perisistence.ConnectionFactory;
+
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.*;
+
+public class PlayerDAO implements InterfacePlayerDAO<Integer, PlayerDTO> {
+
+
+    @Override
+    public void save(PlayerDTO playerDTO,String team) {
+        String sql ="INSERT INTO players (name,number,position,isFielded,team) " +
+                "VALUES (?,?,?,?,?)";
+        try (PreparedStatement ps= ConnectionFactory.getPreparedStatement(sql)){
+            ps.setString(1, playerDTO.name());
+            ps.setInt(2, playerDTO.number());
+            ps.setString(3, playerDTO.postion());
+            ps.setBoolean(4, playerDTO.isFIelded());
+            ps.setString(5,team);
+            ps.executeUpdate();
+
+        } catch (SQLException e){
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    public void remove(Integer id,String team) {
+        String sql="DELETE FROM players " +
+                "WHERE number=? and team=?";
+        try (PreparedStatement ps=ConnectionFactory.getPreparedStatement(sql)){
+            ps.setInt(1,id);
+            ps.setString(2,team);
+            ps.executeQuery();
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+
+    }
+
+    @Override
+    public void update(PlayerDTO playerDTO,String team) {
+        String sql="UPDATE players SET name=?,position=?,isFielded=? " +
+                "WHERE number=? and team=?";
+        try (PreparedStatement ps= ConnectionFactory.getPreparedStatement(sql)){
+            ps.setString(1, playerDTO.name());
+            ps.setString(2, playerDTO.postion());
+            ps.setBoolean(3, playerDTO.isFIelded());
+            ps.setInt(4,playerDTO.number());
+            ps.setString(5,team);
+            ps.executeUpdate();
+
+        } catch (SQLException e){
+            e.printStackTrace();
+        }
+
+    }
+
+    @Override
+    public Optional<PlayerDTO> findById(Integer id,String team) {
+        String sql="SELECT * FROM players " +
+                "WHERE number=? and team=?";
+        try (PreparedStatement ps=ConnectionFactory.getPreparedStatement(sql)){
+            ps.setInt(1,id);
+            ps.setString(2,team);
+            ResultSet rs=ps.executeQuery();
+            if (rs.next()){
+                return Optional.of(new PlayerDTO(rs.getString("name"),
+                        rs.getInt("number"),
+                        rs.getString("position"),
+                        rs.getBoolean("isFIelded")));
+            }
+
+        } catch (SQLException e){
+            e.printStackTrace();
+        }
+        return Optional.empty();
+    }
+
+    @Override
+    public Map<Integer,PlayerDTO> getPlayers(String team) {
+        String sql="SELECT * FROM players " +
+                "WHERE team=?";
+        Map<Integer,PlayerDTO> playerMap=new TreeMap<>();
+        try (PreparedStatement ps=ConnectionFactory.getPreparedStatement(sql)){
+            ps.setString(1,team);
+            ResultSet rs=ps.executeQuery();
+            if (rs.next()){
+                playerMap.put(rs.getInt("number"),new PlayerDTO(rs.getString("name"),
+                        rs.getInt("number"),
+                        rs.getString("position"),
+                        rs.getBoolean("isFIelded")));
+            }
+
+        } catch (SQLException e){
+            e.printStackTrace();
+        }
+        return playerMap;
+    }
+}
+package model;
+
+import dao.InterfacePlayerDAO;
+import dto.PlayerDTO;
+import dto.TransformDTO;
+import exception.LimitPlayersTeamReached;
+
+import java.util.*;
+
+public class Team {
+    private final String name;
+    private String baseLocation;
+    private String coachName;
+    private Player capitan;
+
+    private int fieldedPlayersCount;
+    private int playersCount;
+    private Map<Integer, Player> playersMap;
+
+    private final InterfacePlayerDAO<Integer, PlayerDTO> interfacePlayerDAO;
+
+    public Team(String name, String baseLocation, String coachName,
+                InterfacePlayerDAO<Integer, PlayerDTO> interfacePlayerDAO) {
+        isValidData(name, baseLocation, coachName);
+        this.name = name;
+        this.baseLocation = baseLocation;
+        this.coachName = coachName;
+        this.playersMap = new TreeMap<>();
+        this.interfacePlayerDAO = interfacePlayerDAO;
+        this.fieldedPlayersCount = 0;
+        this.playersCount = 0;
+    }
+
+    private void isValidData(String name, String baseLocation, String coachName) {
+        if (name.isBlank()) throw new IllegalArgumentException("name must be not blank");
+        if (baseLocation.isBlank()) throw new IllegalArgumentException("base location must be not blank");
+        if (coachName.isBlank()) throw new IllegalArgumentException("coach name must be not blank");
+        Objects.requireNonNull(name, "Name must be not null");
+        Objects.requireNonNull(baseLocation, "Base location must be not null");
+        Objects.requireNonNull(coachName, "Coach name must be not null");
+    }
+
+    public void addPlayer(Player player) {
+        if (playersCount > 18) throw new LimitPlayersTeamReached("Teams only have 18 players or less");
+        player.setFielded(notAllPlayersFielded());
+        interfacePlayerDAO.save(TransformDTO.toDTO(player), name);
+        updatePlayersMap();
+        System.out.println(playersMap);
+        if (notAllPlayersFielded()) fieldedPlayersCount++;
+
+
+    }
+
+
+    public void removePlayer(Player player) {
+        if (isInTeam(player)) throw new NoSuchElementException("Player not found");
+        playersMap.remove(player.getNumber()); // 1*
+        if (player.isFielded()) {
+            fieldedPlayersCount--;
+            if (!notAllPlayersFielded()) {
+                for (Player value : playersMap.values()) {
+                    if (!value.isFielded()) {
+                        value.setFielded();
+                        interfacePlayerDAO.update(TransformDTO.toDTO(value), name);
+                        break;
+                    }
+
+                }
+
+
+            }
+        }
+        interfacePlayerDAO.remove(player.getNumber(), name);
+        updatePlayersMap();
+
+
+    }
+
+
+
+    public void substitute(Player substitute, Player starter) {
+        isInTeam(substitute);
+        isInTeam(starter);
+        if (substitute.isFielded()) {
+            throw new IllegalArgumentException("Player deve estar no banco" + substitute.getName());
+        }
+        if (!starter.isFielded()) {
+            throw new IllegalArgumentException("Player deve estar em campo" + starter.getName());
+        }
+        substitute.setFielded();
+        starter.setFielded();
+        playersMap.replace(substitute.getNumber(), substitute);
+        playersMap.replace(starter.getNumber(), starter);
+        interfacePlayerDAO.update(TransformDTO.toDTO(substitute), name);
+        interfacePlayerDAO.update(TransformDTO.toDTO(substitute), name);
+    }
+
+
+    public void setCapitan(Player capitan) {
+        isInTeam(capitan);
+    }
+    private boolean isInTeam(Player player) {
+        return !playersMap.containsKey(player.getNumber());
+    }
+
+    public List<Player> getFieldedPlayers() {
+        return playersMap.values().stream()
+                .filter(Player::isFielded).toList();
+    }
+
+
+    public List<Player> getOutFieldedPlayers() {
+        return playersMap.values().stream()
+                .filter(p -> !p.isFielded()).toList();
+    }
+
+    private void updatePlayersMap() {
+        interfacePlayerDAO.getPlayers(name).values().stream()
+                .map(p -> playersMap.put(p.number(), TransformDTO.fromDTO(p)));
+    }
+
+    private boolean notAllPlayersFielded() {
+        return fieldedPlayersCount < 11;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == null || getClass() != o.getClass()) return false;
+        Team team = (Team) o;
+        return Objects.equals(name, team.name);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(name);
+    }
+
+    @Override
+    public String toString() {
+        return """
+                Name:%s | Location:%s | Coach:%s | Captain:%s
+                """.formatted(name, baseLocation, coachName, capitan.getName());
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public String getBaseLocation() {
+        return baseLocation;
+    }
+
+    public String getCoachName() {
+        return coachName;
+    }
+
+    public Player getCapitan() {
+        return capitan;
+    }
+
+
+}
+
+/*
+1* Aqui também poderiamos colocar uma verificação
+que não deixaria remover um player em campo
+if (player.isFielded())
+throw new PlayerFieldedException("Player não pode ser removido em campo")
+mas optamos por colocar um código que substitui um player automaticamente
+*/
